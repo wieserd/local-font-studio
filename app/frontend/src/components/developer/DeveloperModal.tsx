@@ -181,9 +181,8 @@ export const DeveloperModal: React.FC<DeveloperModalProps> = ({
 
   const handleFlushToCleanState = () => {
     if (window.confirm(
-      "⚠️ DANGER: FLUSH WORKSPACE TO CLEAN SHIPPING STATE\n\n" +
-      "This action will permanently erase all custom glyphs, vector contours, imported artwork scans, and cached font data from your browser.\n\n" +
-      "Local Font Studio will be restored to a 100% pristine, blank shipping state ready for GitHub release.\n\n" +
+      "Reset All Workspace Data?\n\n" +
+      "This will permanently erase all custom glyphs, vector contours, and imported scans from your browser storage.\n\n" +
       "Are you sure you want to proceed?"
     )) {
       flushToPristineEmptyState(false);
@@ -760,12 +759,11 @@ export const DeveloperModal: React.FC<DeveloperModalProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Trash2 size={16} style={{ color: '#ef4444' }} />
                       <span style={{ fontWeight: 700, fontSize: '13px', color: '#f87171' }}>
-                        Flush Workspace to Clean Shipping State
+                        Reset Workspace to Default
                       </span>
                     </div>
                     <p style={{ fontSize: '11px', color: '#8b949e', margin: '4px 0 0 0', lineHeight: 1.45 }}>
                       Wipes all cached vector contours, scanned artwork, and font modifications from browser storage.
-                      Restores Local Font Studio to a 100% blank state ready to publish or push to GitHub.
                     </p>
                   </div>
 
@@ -788,7 +786,7 @@ export const DeveloperModal: React.FC<DeveloperModalProps> = ({
                     }}
                   >
                     <RotateCcw size={13} />
-                    <span>Flush & Reset to Clean State</span>
+                    <span>Reset All Data</span>
                   </button>
                 </div>
               </div>

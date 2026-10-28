@@ -350,9 +350,8 @@ export const AppMenuBar: React.FC<AppMenuBarProps> = ({
               onClick={() => {
                 closeMenu();
                 if (window.confirm(
-                  "⚠️ FLUSH TO CLEAN SHIPPING STATE\n\n" +
-                  "This will permanently erase all custom glyphs, vector contours, and imported scans from browser storage.\n\n" +
-                  "Restores Local Font Studio to a 100% blank, unassigned state ready to ship to GitHub.\n\n" +
+                  "Reset Workspace?\n\n" +
+                  "This will permanently erase all custom glyphs, vector contours, and imported scans from your browser storage.\n\n" +
                   "Are you sure you want to proceed?"
                 )) {
                   flushToPristineEmptyState();
@@ -362,7 +361,7 @@ export const AppMenuBar: React.FC<AppMenuBarProps> = ({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Trash2 size={13} style={{ color: '#ef4444' }} />
-                <span style={{ color: '#ef4444', fontWeight: 500 }}>Flush to Clean State...</span>
+                <span style={{ color: '#ef4444', fontWeight: 500 }}>Reset Workspace...</span>
               </div>
             </div>
           </div>
