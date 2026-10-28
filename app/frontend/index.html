@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M12 2L2 22h4.5l2-4.5h7l2 4.5H22L12 2zm0 6.5l2.25 5h-4.5L12 8.5z'/></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Local Font Studio — TTF & OTF Editor</title>
+    <style>
+      #app-preloader {
+        position: fixed;
+        inset: 0;
+        background-color: #0e1117;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #f1f5f9;
+        user-select: none;
+      }
+      .preloader-glow {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(79, 70, 229, 0.08));
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        box-shadow: 0 0 24px rgba(99, 102, 241, 0.22);
+      }
+      .preloader-title {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin-bottom: 5px;
+        color: #f8fafc;
+      }
+      .preloader-subtitle {
+        font-size: 11px;
+        color: #64748b;
+        margin-bottom: 22px;
+      }
+      .preloader-bar-track {
+        width: 220px;
+        height: 4px;
+        background-color: #1f2536;
+        border-radius: 9999px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+      }
+      .preloader-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #4f46e5, #6366f1, #38bdf8);
+        border-radius: 9999px;
+        transition: width 0.08s linear;
+        box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+      }
+      .preloader-meta {
+        width: 220px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+        font-size: 11px;
+        color: #94a3b8;
+        font-variant-numeric: tabular-nums;
+      }
+      .preloader-meta span:first-child {
+        color: #64748b;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .preloader-meta #preloader-pct {
+        font-weight: 600;
+        color: #a5b4fc;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+    </style>
+  </head>
+  <body class="bg-studio text-gray-100 antialiased selection:bg-indigo-500 selection:text-white">
+    <div id="root">
+      <div id="app-preloader">
+        <div class="preloader-glow">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#6366f1">
+            <path d="M12 2L2 22h4.5l2-4.5h7l2 4.5H22L12 2zm0 6.5l2.25 5h-4.5L12 8.5z"/>
+          </svg>
+        </div>
+        <div class="preloader-title">Local Font Studio</div>
+        <div class="preloader-subtitle">Loading workspace & font engine...</div>
+        <div class="preloader-bar-track">
+          <div id="preloader-bar" class="preloader-bar-fill"></div>
+        </div>
+        <div class="preloader-meta">
+          <span>Initializing</span>
+          <span id="preloader-pct">0%</span>
+        </div>
+      </div>
+      <script>
+        (function() {
+          var bar = document.getElementById('preloader-bar');
+          var pct = document.getElementById('preloader-pct');
+          if (!bar || !pct) return;
+          var start = performance.now();
+          var duration = 1800;
+          function update(now) {
+            var elapsed = now - start;
+            var t = Math.min(elapsed / duration, 0.96);
+            var ease = 1 - Math.pow(1 - t, 3);
+            var val = Math.floor(ease * 96);
+            bar.style.width = val + '%';
+            pct.textContent = val + '%';
+            if (t < 0.96) {
+              requestAnimationFrame(update);
+            }
+          }
+          requestAnimationFrame(update);
+        })();
+      </script>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

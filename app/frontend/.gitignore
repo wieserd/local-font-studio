@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.DS_Store
+
+# User Exports, Font Binaries & Vectors
+*.otf
+*.ttf
+*.woff
+*.woff2
+*.eot
+*.svg
+*.zip

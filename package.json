@@ -1,0 +1,30 @@
+{
+  "name": "local-font-studio",
+  "version": "0.1.0",
+  "description": "Offline, private, browser-based typography design studio and font compiler for comic letterers, indie creators, and type designers.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "cd app/frontend && npm install",
+    "dev": "cd app/frontend && npm run dev",
+    "start": "cd app/frontend && npm run dev",
+    "build": "cd app/frontend && npm run build",
+    "typecheck": "cd app/frontend && npm run typecheck",
+    "test": "cd app/frontend && npm run test"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "typography",
+    "font-editor",
+    "type-design",
+    "comic-lettering",
+    "opentype",
+    "font-compiler",
+    "vector-editor",
+    "kerning"
+  ],
+  "author": "wieserd (https://github.com/wieserd)",
+  "license": "SEE LICENSE IN LICENSE.md"
+}
