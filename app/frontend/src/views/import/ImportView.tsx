@@ -167,7 +167,7 @@ export const ImportView: React.FC<{
     return { hasConflict: false, char: targetChar, location: null };
   };
 
-  // Re-assign selected box to a different letter with conflict check
+  // Re-assign selected box to a different letter with conflict check & auto-swap
   const handleUpdateBoxChar = (newChar: string) => {
     if (!selectedBoxId || !newChar) return;
     const currentBox = boxes.find(b => b.id === selectedBoxId);
@@ -175,7 +175,18 @@ export const ImportView: React.FC<{
 
     const conflict = checkConflict(newChar, selectedBoxId);
     if (conflict.hasConflict) {
-      setConflictInfo(conflict);
+      if (conflict.location === 'current_image' && conflict.conflictingBoxId) {
+        // Auto-swap characters between this box and conflicting box on the artwork
+        setBoxes(prev => prev.map(b => {
+          if (b.id === selectedBoxId) return { ...b, char: newChar };
+          if (b.id === conflict.conflictingBoxId) return { ...b, char: currentBox.char };
+          return b;
+        }));
+        setConflictInfo(null);
+        setSuccessMsg(`Swapped '${newChar}' and '${currentBox.char}'.`);
+      } else {
+        setConflictInfo(conflict);
+      }
     } else {
       setConflictInfo(null);
       setBoxes(prev => prev.map(b => b.id === selectedBoxId ? { ...b, char: newChar } : b));
@@ -351,6 +362,19 @@ export const ImportView: React.FC<{
     { threshold, invert, removeBg, denoise }
   ) : null;
 
+  // Unassigned characters for quick-selection chips in inline editor
+  const availableSuggestions = React.useMemo(() => {
+    const assigned = new Set(boxes.map(b => b.char));
+    const list: string[] = [];
+    for (const c of uppercaseChars) {
+      if (!assigned.has(c)) {
+        list.push(c);
+        if (list.length >= 4) break;
+      }
+    }
+    return list;
+  }, [boxes, uppercaseChars]);
+
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
       {/* 1. Left Vertical Section Toolbar (44px, Icons Only) */}
@@ -411,6 +435,8 @@ export const ImportView: React.FC<{
             }
           }}
           onDropImageFile={handleLoadImageFile}
+          onUpdateBoxChar={handleUpdateBoxChar}
+          availableSuggestions={availableSuggestions}
         />
       </div>
 

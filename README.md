@@ -10,6 +10,10 @@
 ![License](https://img.shields.io/badge/License-S.O.U.L.%20v1.0-ff007f)
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local%20%26%20Offline-success)
 
+<p align="center">
+  <img src="docs/images_/glyph-editor.png" alt="Local Font Studio - Vector Glyph Editor" width="100%" />
+</p>
+
 ---
 
 ## Overview
@@ -29,6 +33,20 @@ Everything runs entirely on your local machine in client-side TypeScript. **No a
 - **GPOS Kerning Studio**: Real-time vector pair kerning canvas with contextual sentence specimen waterfall and common pair presets (`AV`, `To`, `WA`, etc.).
 - **Extensions & Addons System**: Modular plugin architecture featuring the *Comic Lettering & SFX Studio* (dialogue balloon simulator, Crossbar-I pronoun rules, and vector sound effects), alongside a custom manifest JSON importer.
 - **Binary Font Exporter**: Compiles production-ready OpenType CFF (`.otf`) binary fonts and exports SVG contour archives (`.zip`) directly in the browser using `opentype.js`.
+
+---
+
+## Studio Tour
+
+| Artwork Importer & Smart Slicer | Glyph Roster & Project Map |
+| :---: | :---: |
+| <img src="docs/images_/artwork-importer.png" alt="Artwork Scan Importer" width="100%" /> | <img src="docs/images_/glyph-map-grid.png" alt="Glyph Map Grid" width="100%" /> |
+| *Auto-detects ink boundaries with click-to-reassign letter badges* | *High-density Unicode glyph map with coverage tracker* |
+
+| Vector Outline & Bézier Editor | Metrics & GPOS Kerning Studio |
+| :---: | :---: |
+| <img src="docs/images_/glyph-editor.png" alt="Vector Glyph Editor" width="100%" /> | <img src="docs/images_/kerning-metrics.png" alt="Kerning & Metrics Studio" width="100%" /> |
+| *Point-by-point path editing, stem dilation & FontAudit pre-flight* | *Interactive sentence waterfall & optical auto-spacing* |
 
 ---
 
@@ -79,7 +97,7 @@ You can run all commands directly from the project root:
 | :--- | :--- |
 | `npm run dev` *(or `npm start`)* | Launches the Vite local development server on `http://localhost:5173`. |
 | `npm run build` | Runs TypeScript type checking and produces an optimized production bundle in `dist/`. |
-| `npm test` | Runs the automated 30-case test suite (`contourUtils`, `typesetter`, `fontAudit`, `fontExporter`, `addons`). |
+| `npm test` | Runs the automated 31-case test suite (`contourUtils`, `typesetter`, `fontAudit`, `fontExporter`, `addons`). |
 | `npm run typecheck` | Validates TypeScript types across the entire project without emitting code. |
 
 ---
@@ -101,6 +119,7 @@ local-font-studio/
 │           ├── utils/           # Font compilation, typesetter, FontAudit, tracer
 │           └── views/           # Studio views (Import, Glyphs, Editor, Metrics, Kerning, Preview)
 ├── docs/
+│   ├── images_/                 # Studio screenshots & interface tour assets
 │   └── HANDBOOK.md              # In-depth typography manual and studio handbook
 ├── scripts/
 │   └── backup.sh                # Portable rolling snapshot backup utility
