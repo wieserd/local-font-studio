@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, MouseEvent } from 'react';
-import { Trash2, UploadCloud } from 'lucide-react';
+import { Trash2, UploadCloud, Check } from 'lucide-react';
 import { GlyphBox, ResizeHandle, ToolMode } from './types';
 import { detectInkBoundingBox } from '../../utils/imageProcessor';
 
@@ -19,6 +19,8 @@ interface ImageWorkspaceProps {
   onDeleteBox: (id: string) => void;
   onUploadImage?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDropImageFile?: (file: File) => void;
+  onUpdateBoxChar?: (newChar: string) => void;
+  availableSuggestions?: string[];
 }
 
 export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
@@ -37,6 +39,8 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
   onDeleteBox,
   onUploadImage,
   onDropImageFile,
+  onUpdateBoxChar,
+  availableSuggestions = [],
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const imageWrapperRef = useRef<HTMLDivElement>(null);
@@ -52,6 +56,11 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
   // Moving state
   const [draggingBoxId, setDraggingBoxId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{ dx: number; dy: number } | null>(null);
+  const mouseDownPosRef = useRef<{ clientX: number; clientY: number; boxId: string } | null>(null);
+  const hasMovedDistanceRef = useRef<boolean>(false);
+
+  // Inline character editing state
+  const [editingBoxId, setEditingBoxId] = useState<string | null>(null);
 
   // Resizing state
   const [resizingBoxId, setResizingBoxId] = useState<string | null>(null);
@@ -72,7 +81,7 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
     };
   };
 
-  // Keyboard shortcut listener: Backspace, Delete, or Return deletes the selected box!
+  // Keyboard shortcut listener: Backspace/Delete deletes, typing printable key updates character!
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!selectedBoxId) return;
@@ -88,7 +97,10 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
         } else if (e.key === 'Enter') {
           e.preventDefault();
           inputElem.blur();
-          onDeleteBox(selectedBoxId);
+          setEditingBoxId(null);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          setEditingBoxId(null);
         }
         return;
       }
@@ -97,18 +109,25 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
         e.key === 'Backspace' ||
         e.code === 'Backspace' ||
         e.key === 'Delete' ||
-        e.code === 'Delete' ||
-        e.key === 'Enter' ||
-        e.code === 'Enter'
+        e.code === 'Delete'
       ) {
         e.preventDefault();
         onDeleteBox(selectedBoxId);
+        setEditingBoxId(null);
+        return;
+      }
+
+      // If a box is selected and user presses any printable single character key (A-Z, a-z, 0-9, etc.)
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1 && e.key !== ' ') {
+        e.preventDefault();
+        onUpdateBoxChar?.(e.key);
+        setEditingBoxId(selectedBoxId);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [selectedBoxId, onDeleteBox]);
+  }, [selectedBoxId, onDeleteBox, onUpdateBoxChar]);
 
   // Window-level mouse move & mouse up to ensure smooth dragging and resizing even outside canvas bounds
   useEffect(() => {
@@ -118,16 +137,32 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
 
       // Handle Moving Box
       if (draggingBoxId && dragOffset) {
-        setBoxes(prev => prev.map(b => {
-          if (b.id !== draggingBoxId) return b;
-          const targetX = Math.round(x - dragOffset.dx);
-          const targetY = Math.round(y - dragOffset.dy);
-          return {
-            ...b,
-            x: Math.max(0, Math.min(loadedImg.width - b.width, targetX)),
-            y: Math.max(0, Math.min(loadedImg.height - b.height, targetY))
-          };
-        }));
+        if (mouseDownPosRef.current) {
+          const moveDist = Math.hypot(
+            e.clientX - mouseDownPosRef.current.clientX,
+            e.clientY - mouseDownPosRef.current.clientY
+          );
+          if (moveDist > 4) {
+            hasMovedDistanceRef.current = true;
+            if (editingBoxId) {
+              setEditingBoxId(null);
+            }
+          }
+        }
+
+        // Only start moving box coordinates once threshold is crossed
+        if (hasMovedDistanceRef.current) {
+          setBoxes(prev => prev.map(b => {
+            if (b.id !== draggingBoxId) return b;
+            const targetX = Math.round(x - dragOffset.dx);
+            const targetY = Math.round(y - dragOffset.dy);
+            return {
+              ...b,
+              x: Math.max(0, Math.min(loadedImg.width - b.width, targetX)),
+              y: Math.max(0, Math.min(loadedImg.height - b.height, targetY))
+            };
+          }));
+        }
         return;
       }
 
@@ -200,6 +235,12 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
         }
       }
 
+      // Check if this was a pure Click (movement did not exceed threshold)
+      if (mouseDownPosRef.current && !hasMovedDistanceRef.current) {
+        const clickedBoxId = mouseDownPosRef.current.boxId;
+        setEditingBoxId(clickedBoxId);
+      }
+
       setIsDrawing(false);
       setDrawStart(null);
       setDrawCurrent(null);
@@ -208,6 +249,8 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
       setResizingBoxId(null);
       setResizeHandle(null);
       setResizeStart(null);
+      mouseDownPosRef.current = null;
+      hasMovedDistanceRef.current = false;
     };
 
     if (draggingBoxId || resizingBoxId || isDrawing) {
@@ -219,17 +262,27 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
       window.removeEventListener('mousemove', handleWindowMouseMove);
       window.removeEventListener('mouseup', handleWindowMouseUp);
     };
-  }, [draggingBoxId, dragOffset, resizingBoxId, resizeHandle, resizeStart, isDrawing, drawStart, drawCurrent, loadedImg, zoom, nextTargetChar, getNextAvailableChar, setBoxes, setSelectedBoxId]);
+  }, [draggingBoxId, dragOffset, resizingBoxId, resizeHandle, resizeStart, isDrawing, drawStart, drawCurrent, loadedImg, zoom, nextTargetChar, getNextAvailableChar, setBoxes, setSelectedBoxId, editingBoxId]);
 
-  // Click on a Box directly -> selects and immediately enables drag/move
+  // Click on a Box directly -> selects and differentiates Click from Drag
   const handleBoxMouseDown = (e: MouseEvent, box: GlyphBox) => {
     e.stopPropagation();
+
+    // Close any previous edit if switching boxes
+    if (editingBoxId && editingBoxId !== box.id) {
+      setEditingBoxId(null);
+    }
+
     if (document.activeElement instanceof HTMLElement && document.activeElement.tagName === 'INPUT') {
       document.activeElement.blur();
     }
     setSelectedBoxId(box.id);
 
-    // Any mode except pure draw enables instant moving of the clicked box!
+    // Track mouse start position for distinguishing click vs drag
+    mouseDownPosRef.current = { clientX: e.clientX, clientY: e.clientY, boxId: box.id };
+    hasMovedDistanceRef.current = false;
+
+    // Any mode except pure draw enables moving of the clicked box!
     if (activeTool !== 'draw') {
       const { x, y } = getImageCoords(e.clientX, e.clientY);
       setDraggingBoxId(box.id);
@@ -271,8 +324,9 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
       return;
     }
 
-    // 2. Clicked empty space: deselect current box
+    // 2. Clicked empty space: deselect current box and close inline edit
     setSelectedBoxId(null);
+    setEditingBoxId(null);
 
     // 3. Smart Snap on ink letter
     if (activeTool === 'snap' && binaryMask) {
@@ -390,38 +444,179 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                   transition: isDragging ? 'none' : 'border-color 0.1s'
                 }}
               >
-                {/* Character Label Tag Badge */}
-                <div style={{
-                  position: 'absolute',
-                  top: '-18px',
-                  left: '-1px',
-                  backgroundColor: isSelected ? 'var(--accent)' : '#1e2433',
-                  color: '#ffffff',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  padding: '1px 6px',
-                  borderRadius: '3px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
-                  pointerEvents: 'auto',
-                  cursor: isDragging ? 'grabbing' : 'grab'
-                }}>
-                  <span>{b.char}</span>
-                  {isSelected && (
-                    <span
-                      title="Delete box (Shortcut: Backspace / Return)"
-                      style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        onDeleteBox(b.id);
+                {/* Character Label Tag Badge & Inline Quick Editor */}
+                {editingBoxId === b.id ? (
+                  <div
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      position: 'absolute',
+                      top: '-36px',
+                      left: '-2px',
+                      backgroundColor: '#131620',
+                      border: '1.5px solid var(--accent, #6366f1)',
+                      borderRadius: '6px',
+                      padding: '3px 6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.7), 0 0 10px rgba(99,102,241,0.3)',
+                      zIndex: 100,
+                      pointerEvents: 'auto',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>Letter:</span>
+                    <input
+                      autoFocus
+                      type="text"
+                      defaultValue={b.char}
+                      maxLength={2}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const val = e.target.value.trim();
+                        if (val) {
+                          onUpdateBoxChar?.(val);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === 'Escape') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setEditingBoxId(null);
+                        }
+                      }}
+                      style={{
+                        width: '26px',
+                        height: '22px',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        textAlign: 'center',
+                        backgroundColor: '#1e2433',
+                        color: '#ffffff',
+                        border: '1px solid #6366f1',
+                        borderRadius: '4px',
+                        outline: 'none',
+                        padding: 0
+                      }}
+                    />
+
+                    {/* Quick suggestion pills if available */}
+                    {availableSuggestions && availableSuggestions.length > 0 && (
+                      <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+                        {availableSuggestions.slice(0, 3).map(sug => (
+                          <button
+                            key={sug}
+                            type="button"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              onUpdateBoxChar?.(sug);
+                              setEditingBoxId(null);
+                            }}
+                            title={`Assign '${sug}'`}
+                            style={{
+                              backgroundColor: '#272d42',
+                              color: '#cbd5e1',
+                              border: '1px solid #3e4868',
+                              borderRadius: '3px',
+                              padding: '1px 5px',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {sug}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingBoxId(null);
+                      }}
+                      title="Done (Enter)"
+                      style={{
+                        backgroundColor: 'var(--accent, #6366f1)',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '3px',
+                        padding: '2px 5px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
-                      <Trash2 size={10} style={{ opacity: 0.8 }} />
-                    </span>
-                  )}
-                </div>
+                      <Check size={11} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteBox(b.id);
+                        setEditingBoxId(null);
+                      }}
+                      title="Delete box (Backspace)"
+                      style={{
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        color: '#f87171',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        borderRadius: '3px',
+                        padding: '2px 5px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      setSelectedBoxId(b.id);
+                      setEditingBoxId(b.id);
+                    }}
+                    title="Click to change letter or drag to move"
+                    style={{
+                      position: 'absolute',
+                      top: '-18px',
+                      left: '-1px',
+                      backgroundColor: isSelected ? 'var(--accent, #6366f1)' : '#1e2433',
+                      color: '#ffffff',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '1px 6px',
+                      borderRadius: '3px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
+                      pointerEvents: 'auto',
+                      cursor: isDragging ? 'grabbing' : 'pointer'
+                    }}
+                  >
+                    <span>{b.char}</span>
+                    {isSelected && (
+                      <span
+                        title="Delete box (Backspace)"
+                        style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', marginLeft: '2px' }}
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          onDeleteBox(b.id);
+                        }}
+                      >
+                        <Trash2 size={10} style={{ opacity: 0.8 }} />
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* 8 Resize Handles on Selected Box */}
                 {isSelected && (

@@ -1,26 +1,26 @@
 {
-  "buildTimestamp": "2026-10-28T13:50:56.305Z",
-  "buildDurationSeconds": 1.56,
+  "buildTimestamp": "2026-10-29T10:10:18.828Z",
+  "buildDurationSeconds": 1.85,
   "totalFiles": 113,
-  "totalLines": 33369,
-  "totalCodeLines": 30171,
+  "totalLines": 33587,
+  "totalCodeLines": 30370,
   "redCount": 3,
-  "yellowCount": 5,
-  "greenCount": 105,
+  "yellowCount": 6,
+  "greenCount": 104,
   "files": [
     {
       "path": "src/components/header/AppMenuBar.tsx",
       "name": "AppMenuBar.tsx",
       "category": "Component",
-      "totalLines": 1253,
-      "codeLines": 1133,
+      "totalLines": 1252,
+      "codeLines": 1132,
       "blankLines": 113,
       "commentLines": 7,
       "hookCount": 6,
       "hexCount": 81,
       "status": "red",
       "recommendation": "Critical (>1,000 LOC): High architectural complexity. Priority candidate to decompose into focused subcomponents or extract hooks.",
-      "lastModified": 1793195370966.7537
+      "lastModified": 1793199639863.3193
     },
     {
       "path": "src/__tests__/unit_tests.ts",
@@ -68,15 +68,15 @@
       "path": "src/components/developer/DeveloperModal.tsx",
       "name": "DeveloperModal.tsx",
       "category": "Component",
-      "totalLines": 864,
-      "codeLines": 811,
+      "totalLines": 862,
+      "codeLines": 809,
       "blankLines": 45,
       "commentLines": 8,
       "hookCount": 14,
       "hexCount": 104,
       "status": "yellow",
       "recommendation": "Warning (700–1,000 LOC): Approaching limit. Monitor and consider breaking into smaller modules.",
-      "lastModified": 1793195313922.0781
+      "lastModified": 1793199652134.4536
     },
     {
       "path": "src/views/metrics/VerticalMetricsCanvas.tsx",
@@ -96,15 +96,29 @@
       "path": "src/views/import/ImportView.tsx",
       "name": "ImportView.tsx",
       "category": "View",
-      "totalLines": 746,
-      "codeLines": 666,
-      "blankLines": 58,
-      "commentLines": 22,
-      "hookCount": 23,
+      "totalLines": 772,
+      "codeLines": 689,
+      "blankLines": 59,
+      "commentLines": 24,
+      "hookCount": 24,
       "hexCount": 10,
       "status": "yellow",
       "recommendation": "Warning (700–1,000 LOC): Approaching limit. Monitor and consider breaking into smaller modules.",
-      "lastModified": 1793191820171.167
+      "lastModified": 1793268491756.571
+    },
+    {
+      "path": "src/views/import/ImageWorkspace.tsx",
+      "name": "ImageWorkspace.tsx",
+      "category": "View",
+      "totalLines": 752,
+      "codeLines": 673,
+      "blankLines": 53,
+      "commentLines": 26,
+      "hookCount": 19,
+      "hexCount": 36,
+      "status": "yellow",
+      "recommendation": "Warning (700–1,000 LOC): Approaching limit. Monitor and consider breaking into smaller modules.",
+      "lastModified": 1793268599690.7373
     },
     {
       "path": "src/utils/fontAudit.ts",
@@ -245,20 +259,6 @@
       "status": "green",
       "recommendation": "Healthy modular component size.",
       "lastModified": 1793171961076.9644
-    },
-    {
-      "path": "src/views/import/ImageWorkspace.tsx",
-      "name": "ImageWorkspace.tsx",
-      "category": "View",
-      "totalLines": 557,
-      "codeLines": 494,
-      "blankLines": 43,
-      "commentLines": 20,
-      "hookCount": 16,
-      "hexCount": 23,
-      "status": "green",
-      "recommendation": "Healthy modular component size.",
-      "lastModified": 1793137280818.0308
     },
     {
       "path": "src/components/audit/FontAuditModal.tsx",
